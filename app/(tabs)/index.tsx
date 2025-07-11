@@ -1,75 +1,83 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from "react";
+import { Button, SafeAreaView, Text, TextInput, View } from "react-native";
+import WebView from "react-native-webview";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+
+  // JavaScript to extract price from Amazon page
+  const scrapeScript = `
+    setTimeout(() => {
+      // Try different price selectors
+      const selectors = [
+        '#priceblock_ourprice',
+        '#priceblock_dealprice',
+        '.a-price-whole',
+        '.a-offscreen',
+        '[data-asin-price]'
+      ];
+      
+      let price = null;
+      
+      for (const selector of selectors) {
+        const element = document.querySelector(selector);
+        if (element) {
+          let priceText = element.innerText || element.textContent;
+          
+          // Handle price parts (whole + fraction)
+          if (selector === '.a-price-whole') {
+            const fraction = document.querySelector('.a-price-fraction');
+            if (fraction) priceText += '.' + fraction.innerText;
+          }
+          
+          price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+          if (!isNaN(price)) break;
+        }
+      }
+      
+      // Send result back to React Native
+      window.ReactNativeWebView.postMessage(price ? price.toString() : '');
+    }, 3000);
+    true;
+  `;
+
 
 export default function HomeScreen() {
+  const [url, setUrl] = useState("");
+  const [submittedUrl, setSubmittedUrl] = useState<string>("");
+
+  const [htmlContent, setHtmlContent] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleGetProductDetails = () => {
+    setSubmittedUrl(url);
+  };
+
+   const handleMessage = (event : any) => {
+    const price = parseFloat(event.nativeEvent.data);
+    console.log({price, event});
+    if (!isNaN(price)) {
+      // onPriceFetched(price);
+      // setPriceFound(true);
+    }
+    setIsLoading(false);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView>
+      <Text>Paste the Url here</Text>
+      <TextInput style={{borderWidth : 1, fontSize : 12, padding : 8}} onChangeText={setUrl} />
+      <Button onPress={handleGetProductDetails} title="Submit" />
+      <Button onPress={handleGetProductDetails} title="Reload" />
+
+      {submittedUrl.length > 0 ? (
+        <WebView
+        renderError={() => <View><Text>Error</Text></View>}
+          javaScriptEnabled={true}
+          injectedJavaScript={scrapeScript}
+          onMessage={handleMessage}
+          style={{ height: 100, width: 100 }}
+          source={{ uri: submittedUrl }}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      ) : null}
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
