@@ -1,18 +1,33 @@
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+
+import { SplashScreen, Stack } from 'expo-router';
 import 'react-native-reanimated';
 import "../global.css";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+
+import { useEffect, useState } from 'react';
+
+import loadFonts from '../utils/font-loader';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+ const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
+  useEffect(() => {
+    async function prepare() {
+      try {
+        await loadFonts();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setFontsLoaded(true);
+        await SplashScreen.hideAsync();
+      }
+    }
+    prepare();
+  }, []);
+
+  if (!fontsLoaded) {
     return null;
   }
 

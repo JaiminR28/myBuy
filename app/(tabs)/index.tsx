@@ -62,8 +62,9 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className=" flex-1" style={{padding  : 20}}>
+    <SafeAreaView className=" flex-1">
       {/* HEADER */}
+      <View className=" p-5">
       <View className="">
         <Text className=" font-bold text-4xl">My Wishlist</Text>
       </View>
@@ -82,6 +83,7 @@ export default function HomeScreen() {
           source={{ uri: submittedUrl }}
         />
       ) : null}
+      </View>
     </SafeAreaView>
   );
 }
