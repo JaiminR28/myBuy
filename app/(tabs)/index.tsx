@@ -62,7 +62,11 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className=" flex-1" style={{padding  : 20}}>
+      {/* HEADER */}
+      <View className="">
+        <Text className=" font-bold text-4xl">My Wishlist</Text>
+      </View>
       <Text>Paste the Url here</Text>
       <TextInput style={{borderWidth : 1, fontSize : 12, padding : 8}} onChangeText={setUrl} />
       <Button onPress={handleGetProductDetails} title="Submit" />
