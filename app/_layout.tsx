@@ -6,6 +6,7 @@ import "../global.css";
 
 import { useEffect, useState } from 'react';
 
+import { createTables } from '../utils/database';
 import loadFonts from '../utils/font-loader';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +25,7 @@ export default function RootLayout() {
         await SplashScreen.hideAsync();
       }
     }
+    createTables();
     prepare();
   }, []);
 

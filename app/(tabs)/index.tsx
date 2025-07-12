@@ -1,10 +1,18 @@
-import { useState } from "react";
-import { Button, SafeAreaView, Text, TextInput, View } from "react-native";
-import WebView from "react-native-webview";
+import TitleInputModal, {
+  TitleInputModalRef,
+} from "@/components/newWishlistPrompt";
+import { Entypo } from "@expo/vector-icons";
+import { useRef, useState } from "react";
+import {
+  Alert,
+  SafeAreaView,
+  Text,
+  TouchableHighlight,
+  View,
+} from "react-native";
 
-
-  // JavaScript to extract price from Amazon page
-  const scrapeScript = `
+// JavaScript to extract price from Amazon page
+const scrapeScript = `
     setTimeout(() => {
       // Try different price selectors
       const selectors = [
@@ -39,7 +47,6 @@ import WebView from "react-native-webview";
     true;
   `;
 
-
 export default function HomeScreen() {
   const [url, setUrl] = useState("");
   const [submittedUrl, setSubmittedUrl] = useState<string>("");
@@ -51,9 +58,9 @@ export default function HomeScreen() {
     setSubmittedUrl(url);
   };
 
-   const handleMessage = (event : any) => {
+  const handleMessage = (event: any) => {
     const price = parseFloat(event.nativeEvent.data);
-    console.log({price, event});
+    console.log({ price, event });
     if (!isNaN(price)) {
       // onPriceFetched(price);
       // setPriceFound(true);
@@ -61,14 +68,32 @@ export default function HomeScreen() {
     setIsLoading(false);
   };
 
+  const titleModalRef = useRef<TitleInputModalRef>(null);
+
+  // Handle form submission
+  const handleTitleSubmit = (title: string) => {
+    Alert.alert("Title Submitted", `You entered: ${title}`);
+    // Here you would typically:
+    // 1. Save to state
+    // 2. Send to API
+    // 3. Update your UI
+  };
+
   return (
     <SafeAreaView className=" flex-1">
       {/* HEADER */}
       <View className=" p-5">
-      <View className="">
-        <Text className=" font-bold text-4xl">My Wishlist</Text>
-      </View>
-      <Text>Paste the Url here</Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-6xl font-semibold pt-2">My Wishlist</Text>
+
+          <TouchableHighlight underlayColor="#f1f3f5"
+            onPress={() => titleModalRef.current?.showModal()}
+            className="p-3 rounded-2xl items-center justify-center border mb-4 border-gray-700"
+          >
+            <Entypo name="plus" size={30} color="#343a40" />
+          </TouchableHighlight>
+        </View>
+        {/* <Text>Paste the Url here</Text>
       <TextInput style={{borderWidth : 1, fontSize : 12, padding : 8}} onChangeText={setUrl} />
       <Button onPress={handleGetProductDetails} title="Submit" />
       <Button onPress={handleGetProductDetails} title="Reload" />
@@ -82,8 +107,20 @@ export default function HomeScreen() {
           style={{ height: 100, width: 100 }}
           source={{ uri: submittedUrl }}
         />
-      ) : null}
+      ) : null} */}
       </View>
+      <TitleInputModal
+        ref={titleModalRef}
+        onSubmit={handleTitleSubmit}
+        headerText="Create New Wishlist"
+        inputPlaceholder="Enter wishlist title"
+        submitText="Create Item"
+        modalProps={{
+          animationIn: "slideInUp",
+          animationOut: "slideOutDown",
+          backdropOpacity: 0.7,
+        }}
+      />
     </SafeAreaView>
   );
 }
