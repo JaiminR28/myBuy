@@ -2,8 +2,9 @@ import { db } from "../lib/db";
 
 
 export const createTables = async () => {
-db.transaction(tx => {
-  tx.executeSql(`
+  console.log("called to create table");
+
+  await db.execAsync(`
     PRAGMA foreign_keys = ON;
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS wishlists (
@@ -13,7 +14,7 @@ db.transaction(tx => {
       type TEXT
     );
   `);
-  tx.executeSql(`
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS product_list (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       wishlist_id INTEGER NOT NULL,
@@ -28,7 +29,6 @@ db.transaction(tx => {
       FOREIGN KEY (wishlist_id) REFERENCES wishlists(id) ON DELETE CASCADE
     );
   `);
-});
 }
 
 
