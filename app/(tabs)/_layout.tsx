@@ -7,6 +7,7 @@ export default function TabLayout() {
     >
       {/* Optionally configure static options outside the route.*/}
       <Stack.Screen name="index" options={{headerShown : false}} />
+      <Stack.Screen name="wishlistDetail" options={{headerShown : false}} />
     </Stack>
   );
 }

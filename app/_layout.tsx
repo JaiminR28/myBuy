@@ -18,6 +18,7 @@ export default function RootLayout() {
     async function prepare() {
       try {
         await loadFonts();
+         await createTables();
       } catch (e) {
         console.warn(e);
       } finally {
@@ -25,7 +26,6 @@ export default function RootLayout() {
         await SplashScreen.hideAsync();
       }
     }
-    createTables();
     prepare();
   }, []);
 

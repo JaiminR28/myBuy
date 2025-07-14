@@ -1,7 +1,10 @@
 import TitleInputModal, {
   TitleInputModalRef,
 } from "@/components/newWishlistPrompt";
+import { db } from "@/lib/db";
 import { Entypo } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { SQLiteRunResult } from "expo-sqlite";
 import { useRef, useState } from "react";
 import {
   Alert,
@@ -48,6 +51,7 @@ const scrapeScript = `
   `;
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [url, setUrl] = useState("");
   const [submittedUrl, setSubmittedUrl] = useState<string>("");
 
@@ -71,12 +75,32 @@ export default function HomeScreen() {
   const titleModalRef = useRef<TitleInputModalRef>(null);
 
   // Handle form submission
-  const handleTitleSubmit = (title: string) => {
-    Alert.alert("Title Submitted", `You entered: ${title}`);
-    // Here you would typically:
-    // 1. Save to state
-    // 2. Send to API
-    // 3. Update your UI
+  const handleTitleSubmit = async (title: string) => {
+    try {
+      // Use executeSqlAsync to get the insertion result
+      let insertResult: SQLiteRunResult | undefined;
+
+      await db.withTransactionAsync(async () => {
+        insertResult = await db.runAsync(
+          `INSERT INTO wishlists (title, createdAt, type) VALUES ('${title}', '${new Date().toISOString()}', 'Monthly')`
+        );
+      });
+
+      // Tell TS that insertResult is definitely assigned here
+      if (insertResult) {
+        router.push({pathname  : "/wishlistDetail", params : {
+            id : insertResult.lastInsertRowId
+        }})
+      } else {
+        console.error("Insert failed, no result returned");
+      }
+
+      // Redirect to the new wishlist page with ID as parameter
+      // router.push(`/wishlist/${insertedId}`);
+    } catch (error) {
+      console.error("Database error:", error);
+      Alert.alert("Error", "Failed to create wishlist");
+    }
   };
 
   return (
@@ -86,7 +110,8 @@ export default function HomeScreen() {
         <View className="flex-row items-center justify-between">
           <Text className="text-6xl font-semibold pt-2">My Wishlist</Text>
 
-          <TouchableHighlight underlayColor="#f1f3f5"
+          <TouchableHighlight
+            underlayColor="#f1f3f5"
             onPress={() => titleModalRef.current?.showModal()}
             className="p-3 rounded-2xl items-center justify-center border mb-4 border-gray-700"
           >
