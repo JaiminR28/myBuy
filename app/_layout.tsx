@@ -6,6 +6,7 @@ import "../global.css";
 
 import { useEffect, useState } from 'react';
 
+import FlashMessage from "react-native-flash-message";
 import { createTables } from '../utils/database';
 import loadFonts from '../utils/font-loader';
 
@@ -34,11 +35,15 @@ export default function RootLayout() {
   }
 
   return (
+
     // <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <>
+    <FlashMessage position="top" />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
+      </>
     // </ThemeProvider>
   );
 }
