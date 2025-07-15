@@ -1,11 +1,14 @@
-import TitleInputModal, {
+import NewWishlistPrompt, {
   TitleInputModalRef,
 } from "@/components/newWishlistPrompt";
+import WishlistListItem from "@/components/wishlistListItem";
+import { wishlistWithItems } from "@/constants/types/types";
 import { db } from "@/lib/db";
 import { Entypo } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { SQLiteRunResult } from "expo-sqlite";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -13,6 +16,7 @@ import {
   TouchableHighlight,
   View,
 } from "react-native";
+import { showMessage } from "react-native-flash-message";
 
 // JavaScript to extract price from Amazon page
 const scrapeScript = `
@@ -58,6 +62,57 @@ export default function HomeScreen() {
   const [htmlContent, setHtmlContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  const [wishlists, setWishlists] = useState<wishlistWithItems[]>([]);
+
+  const handleGetAllWishlists = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const wishlistsData = await db.getAllAsync<wishlistWithItems>(`SELECT 
+    wishlists.*,
+    COALESCE(
+        json_group_array(
+            CASE 
+                WHEN product_list.id IS NOT NULL THEN json_object(
+                    'id', product_list.id,
+                    'wishlist_id', product_list.wishlist_id,
+                    'url', product_list.url,
+                    'imageUrl', product_list.imageUrl,
+                    'price', product_list.price,
+                    'isBought', product_list.isBought,
+                    'description', product_list.description,
+                    'broughtData', product_list.broughtData,
+                    'lastUpdated', product_list.lastUpdated,
+                    'title', product_list.title
+                )
+                ELSE NULL
+            END
+        ), 
+        '[]'
+    ) AS wishlistItems
+FROM 
+    wishlists
+LEFT JOIN 
+    product_list ON wishlists.id = product_list.wishlist_id
+GROUP BY 
+    wishlists.id;
+`);
+      setWishlists(wishlistsData);
+    } catch (error) {
+      console.log("Error in handleGetAllWishlists : ", { error });
+      showMessage({
+        type: "danger",
+        message: "Could not fetch your wishlist Data",
+        description: "Check back later or try creating a new wishlist",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+  // INIT
+  useEffect(() => {
+    handleGetAllWishlists();
+  }, []);
+
   const handleGetProductDetails = () => {
     setSubmittedUrl(url);
   };
@@ -88,9 +143,12 @@ export default function HomeScreen() {
 
       // Tell TS that insertResult is definitely assigned here
       if (insertResult) {
-        router.push({pathname  : "/wishlistDetail", params : {
-            id : insertResult.lastInsertRowId
-        }})
+        router.push({
+          pathname: "/wishlistDetail",
+          params: {
+            id: insertResult.lastInsertRowId,
+          },
+        });
       } else {
         console.error("Insert failed, no result returned");
       }
@@ -102,6 +160,10 @@ export default function HomeScreen() {
       Alert.alert("Error", "Failed to create wishlist");
     }
   };
+
+  const renderItem = useCallback(({ item, index }: any) => {
+    return <WishlistListItem wislistInfo={item} index={index} router={router} />;
+  }, [router]);
 
   return (
     <SafeAreaView className=" flex-1">
@@ -134,7 +196,7 @@ export default function HomeScreen() {
         />
       ) : null} */}
       </View>
-      <TitleInputModal
+      <NewWishlistPrompt
         ref={titleModalRef}
         onSubmit={handleTitleSubmit}
         headerText="Create New Wishlist"
@@ -146,6 +208,15 @@ export default function HomeScreen() {
           backdropOpacity: 0.7,
         }}
       />
+
+      <View className=" flex-1 p-4">
+        <FlashList
+          data={wishlists}
+          renderItem={renderItem}
+          masonry
+          ItemSeparatorComponent={() => <View className="my-2" />}
+        />
+      </View>
     </SafeAreaView>
   );
 }
