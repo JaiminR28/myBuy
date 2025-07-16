@@ -18,48 +18,18 @@ import {
 } from "react-native";
 import { showMessage } from "react-native-flash-message";
 
-// JavaScript to extract price from Amazon page
-const scrapeScript = `
-    setTimeout(() => {
-      // Try different price selectors
-      const selectors = [
-        '#priceblock_ourprice',
-        '#priceblock_dealprice',
-        '.a-price-whole',
-        '.a-offscreen',
-        '[data-asin-price]'
-      ];
-      
-      let price = null;
-      
-      for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          let priceText = element.innerText || element.textContent;
-          
-          // Handle price parts (whole + fraction)
-          if (selector === '.a-price-whole') {
-            const fraction = document.querySelector('.a-price-fraction');
-            if (fraction) priceText += '.' + fraction.innerText;
-          }
-          
-          price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-          if (!isNaN(price)) break;
-        }
-      }
-      
-      // Send result back to React Native
-      window.ReactNativeWebView.postMessage(price ? price.toString() : '');
-    }, 3000);
-    true;
-  `;
+type scrapeDataType = {
+  price?: null | number,
+  description?: string | null,
+  title?: string | null, 
+}
 
 export default function HomeScreen() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [submittedUrl, setSubmittedUrl] = useState<string>("");
 
-  const [htmlContent, setHtmlContent] = useState("");
+  const [htmlContent, setHtmlContent] = useState<null | scrapeDataType>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [wishlists, setWishlists] = useState<wishlistWithItems[]>([]);
