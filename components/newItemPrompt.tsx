@@ -12,7 +12,7 @@ import {
   TouchableHighlight,
   TouchableOpacity,
   View,
-  ViewStyle,
+  ViewStyle
 } from "react-native";
 import Modal, { ModalProps } from "react-native-modal";
 import WebView from "react-native-webview";
@@ -100,7 +100,7 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
     const handleMessage = (event: any) => {
       try {
         const result = JSON.parse(event.nativeEvent.data);
-        console.log({ price: result?.price, title: result?.title, result });
+        console.log({ price: result?.price, image : result?.image });
 
         if (result?.title) {
           // Successfully fetched product details
@@ -132,6 +132,14 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
       setFetchFailed(false);
       setProductData(null);
       setWebViewVisible(true);
+
+    //   const { data: html } = await axios.get(url, {
+    //   headers: {
+    //     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)...'
+    //   }
+    // });
+    
+    // console.log({html});
     };
 
     // Check if we can enable the submit button

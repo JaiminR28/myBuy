@@ -52,10 +52,10 @@ export const scrapeScript = `
     
 
       //3. Image extraction
-      const imgEl = document.getElementById('landingImage');
+      const imgEl = document.querySelector('.product-image');
       if (imgEl) {
         // The src might be in 'src' or 'data-old-hires'
-        result.image = imgEl;
+        result.image = imgEl.src;
       }
 
 
