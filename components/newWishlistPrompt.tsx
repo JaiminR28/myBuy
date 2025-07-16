@@ -35,8 +35,8 @@ type TitleInputModalProps = {
   };
 };
 
-const TitleInputModal = forwardRef<TitleInputModalRef, TitleInputModalProps>(
-  function TitleInputModal(
+const NewWishlistPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
+  function NewWishlistPrompt(
     { 
       onSubmit, 
       modalProps = {}, 
@@ -118,7 +118,7 @@ const TitleInputModal = forwardRef<TitleInputModalRef, TitleInputModalProps>(
 );
 
 // Set display name for the component
-TitleInputModal.displayName = 'TitleInputModal';
+NewWishlistPrompt.displayName = 'NewWishlistPrompt';
 
 const styles = StyleSheet.create({
   modalContent: {
@@ -174,4 +174,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TitleInputModal;
+export default NewWishlistPrompt;
