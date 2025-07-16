@@ -1,0 +1,4 @@
+const scrapeProductDetails = async (url) => {
+
+    
+}
