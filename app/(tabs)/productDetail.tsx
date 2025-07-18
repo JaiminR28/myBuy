@@ -1,38 +1,58 @@
 import { wishlistItem } from "@/constants/types/types";
 import useParsedLocalParams from "@/hooks/useParsedLocalParams";
 import { db } from "@/lib/db";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    Linking,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TouchableHighlight,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Image,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableHighlight,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const ProductDetail = () => {
-    const router = useRouter();
+  const router = useRouter();
   const { productId = null } = useParsedLocalParams();
   const [loading, setLoading] = useState<boolean>(false);
-  const [productDetail, setProductDetail] = useState<null | wishlistItem | undefined>(null);
+  const [productDetail, setProductDetail] = useState<
+    null | wishlistItem | undefined
+  >(null);
 
   const fetchProductDetail = async () => {
     try {
       setLoading(true);
-      const productDetailsData = await db.getFirstAsync<wishlistItem | undefined>(
-        `SELECT * FROM product_list WHERE id = ${productId}`
-      );
+      const productDetailsData = await db.getFirstAsync<
+        wishlistItem | undefined
+      >(`SELECT * FROM product_list WHERE id = ${productId}`);
       setProductDetail(productDetailsData);
       setLoading(false);
     } catch (error) {
       setLoading(false);
       console.log({ error });
+    }
+  };
+
+  const DeleteProductData = async () => {
+    try {
+      if (productId) {
+        db.execAsync(`DELETE FROM product_list WHERE id = ${productId}`)
+          .then(() => {
+            router.back();
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      } else {
+        throw Error("Product Id not found");
+      }
+    } catch (error) {
+      console.error("Erorr in DeleteProductData : ", error);
     }
   };
 
@@ -64,15 +84,18 @@ const ProductDetail = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-         <View className="flex-row items-center gap-x-4 px-4">
-          <TouchableHighlight
-            onPress={() => router.back()}
-            className="p-2 border rounded-md bg-gray-100"
-            underlayColor="#e5e5e5"
-          >
-            <Entypo size={24} name="chevron-left" />
-          </TouchableHighlight>
+      <View className="flex-row items-center gap-x-4 px-4 py-2 justify-between">
+        <TouchableHighlight
+          onPress={() => router.back()}
+          className="p-2 border rounded-md bg-gray-100"
+          underlayColor="#e5e5e5"
+        >
+          <Entypo size={24} name="chevron-left" />
+        </TouchableHighlight>
+        <View>
+        <MaterialIcons name="delete-outline" onPress={DeleteProductData} size={28} color='#e03131' />
         </View>
+      </View>
       {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" />
@@ -84,8 +107,8 @@ const ProductDetail = () => {
             {/* Product Image */}
             <View className="mb-6 bg-gray-100 rounded-lg overflow-hidden">
               {productDetail.imageUrl && (
-                <Image 
-                  source={{ uri: productDetail.imageUrl }} 
+                <Image
+                  source={{ uri: productDetail.imageUrl }}
                   className="w-full h-80"
                   resizeMode="contain"
                 />
@@ -100,7 +123,7 @@ const ProductDetail = () => {
             {/* Price */}
             <View className="flex-row items-center mb-4">
               <Text className="text-xl font-bold text-gray-900">
-                ₹{productDetail.price?.toLocaleString('en-IN')}
+                ₹{productDetail.price?.toLocaleString("en-IN")}
               </Text>
               {productDetail.isBought ? (
                 <View className="ml-3 px-2 py-1 bg-green-100 rounded-full">
@@ -116,9 +139,7 @@ const ProductDetail = () => {
               <Text className="text-lg font-semibold mb-2 text-gray-900">
                 Description
               </Text>
-              <Text className="text-gray-700">
-                {productDetail.description}
-              </Text>
+              <Text className="text-gray-700">{productDetail.description}</Text>
             </View>
 
             {/* Last Updated */}
@@ -129,15 +150,15 @@ const ProductDetail = () => {
 
           {/* Fixed Bottom Buttons */}
           <View className="flex-row p-4 border-t border-gray-200 bg-white">
-            <TouchableOpacity 
+            <TouchableOpacity
               className="flex-1 mr-2 py-3 bg-blue-500 rounded-lg items-center justify-center"
               onPress={handleOpenProductLink}
             >
               <Text className="text-white font-medium">View Product</Text>
             </TouchableOpacity>
-            
+
             {!productDetail.isBought && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="flex-1 ml-2 py-3 bg-green-500 rounded-lg items-center justify-center"
                 onPress={handleMarkAsBought}
               >
