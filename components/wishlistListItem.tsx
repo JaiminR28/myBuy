@@ -13,7 +13,6 @@ const WishlistListItem = ({
   index,
   router,
 }: WishlistListItemProps) => {
-  console.log({ wislistInfo });
   const redirectToDetailPage = useCallback(() => {
     router.push({
       pathname: "/wishlistDetail",
