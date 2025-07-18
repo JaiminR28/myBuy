@@ -26,10 +26,7 @@ type scrapeDataType = {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [url, setUrl] = useState("");
-  const [submittedUrl, setSubmittedUrl] = useState<string>("");
 
-  const [htmlContent, setHtmlContent] = useState<null | scrapeDataType>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [wishlists, setWishlists] = useState<wishlistWithItems[]>([]);
@@ -83,9 +80,6 @@ GROUP BY
     handleGetAllWishlists();
   }, []);
 
-  const handleGetProductDetails = () => {
-    setSubmittedUrl(url);
-  };
 
   const handleMessage = (event: any) => {
     const price = parseFloat(event.nativeEvent.data);
@@ -132,6 +126,7 @@ GROUP BY
   };
 
   const renderItem = useCallback(({ item, index }: any) => {
+    console.log({item});
     return <WishlistListItem wislistInfo={item} index={index} router={router} />;
   }, [router]);
 
