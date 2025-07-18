@@ -140,7 +140,7 @@ GROUP BY
       {/* HEADER */}
       <View className=" p-5">
         <View className="flex-row items-center justify-between">
-          <Text className="text-6xl font-semibold pt-2">My Wishlist</Text>
+          <Text className="text-4xl font-semibold ">My Wishlist</Text>
 
           <TouchableHighlight
             underlayColor="#f1f3f5"
