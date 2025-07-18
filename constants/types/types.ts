@@ -25,3 +25,10 @@ export type wishlistWithItems = {
   type: string;
   wishlistItems : string | wishlistItem[]
 }
+
+export type ProductData = {
+  title: string;
+  price: number | null;
+  description?: string | null;
+  imageUrl?: string | null;
+};

@@ -1,9 +1,11 @@
 import { scrapeScript } from "@/constants/constants";
+import { ProductData } from "@/constants/types/types";
 import { Feather } from "@expo/vector-icons";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   StyleProp,
   StyleSheet,
   Text,
@@ -12,7 +14,7 @@ import {
   TouchableHighlight,
   TouchableOpacity,
   View,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
 import Modal, { ModalProps } from "react-native-modal";
 import WebView from "react-native-webview";
@@ -22,13 +24,9 @@ export type TitleInputModalRef = {
   hideModal: () => void;
 };
 
-type ProductData = {
-  title: string;
-  price: number | null;
-};
 
 type TitleInputModalProps = {
-  onSubmit: (data: ProductData) => void; // Updated to accept both title and price
+  onSubmit: (url : string, productData: ProductData) => void; // Updated to accept both title and price
   modalProps?: Partial<ModalProps>;
   headerText?: string;
   inputPlaceholder?: string;
@@ -82,31 +80,33 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
 
     const handleSubmit = () => {
       if (!productData && !(manualTitle && manualPrice)) return;
-      
+
       if (fetchFailed) {
         // Use manually entered data
-        onSubmit({
+        onSubmit(url,{
           title: manualTitle,
           price: parseFloat(manualPrice),
         });
       } else if (productData) {
         // Use fetched data
-        onSubmit(productData);
+        onSubmit(url,productData);
       }
-      
+
       setIsVisible(false);
     };
 
     const handleMessage = (event: any) => {
       try {
         const result = JSON.parse(event.nativeEvent.data);
-        console.log({ price: result?.price, image : result?.image });
+        console.log({ price: result?.price, image: result?.image });
 
         if (result?.title) {
           // Successfully fetched product details
           setProductData({
             title: result.title,
-            price: result.price
+            price: result.price,
+            description: result.description,
+            imageUrl: result.image,
           });
           setFetchFailed(false);
         } else {
@@ -127,19 +127,19 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
         Alert.alert("Error", "Please enter a URL");
         return;
       }
-      
+
       setSearching(true);
       setFetchFailed(false);
       setProductData(null);
       setWebViewVisible(true);
 
-    //   const { data: html } = await axios.get(url, {
-    //   headers: {
-    //     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)...'
-    //   }
-    // });
-    
-    // console.log({html});
+      //   const { data: html } = await axios.get(url, {
+      //   headers: {
+      //     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)...'
+      //   }
+      // });
+
+      // console.log({html});
     };
 
     // Check if we can enable the submit button
@@ -148,7 +148,7 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
         // Require both manual fields to be filled
         return manualTitle.trim() !== "" && manualPrice.trim() !== "";
       }
-      
+
       // Product data is available
       return productData !== null;
     };
@@ -165,7 +165,7 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
       >
         <View style={[styles.modalContent, style.modalContent]}>
           <Text style={[styles.title, style.title]}>{headerText}</Text>
-          
+
           <View className="flex-row items-center w-full mb-4">
             <TextInput
               className="flex-1"
@@ -191,7 +191,7 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
               )}
             </TouchableHighlight>
           </View>
-          
+
           {/* Manual input fields shown when fetch fails */}
           {fetchFailed && (
             <View className="w-full mb-4">
@@ -215,17 +215,27 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
               />
             </View>
           )}
-          
+
           {/* Show fetched data preview */}
           {productData && !fetchFailed && (
-            <View className="w-full mb-4 p-3 bg-gray-50 rounded-sm">
-              <Text className="font-bold">{productData.title}</Text>
-              <Text className="text-green-600 mt-1">
-                Price: {productData.price ? `₹${productData.price}` : "N/A"}
-              </Text>
+            <View className="w-full mb-4 bg-gray-50 rounded-sm flex-row gap-x-2">
+              {productData.imageUrl ? (
+                <View>
+                  <Image
+                    source={{ uri: productData.imageUrl }}
+                    className=" size-16"
+                  />
+                </View>
+              ) : null}
+              <View className=" flex-1">
+                <Text className="font-bold flex-wrap">{productData.title}</Text>
+                <Text className="text-green-600 mt-1">
+                  Price: {productData.price ? `₹${productData.price}` : "N/A"}
+                </Text>
+              </View>
             </View>
           )}
-          
+
           <View style={[styles.buttonContainer, style.buttonContainer]}>
             <TouchableOpacity
               className="border border-red-500"
@@ -235,8 +245,8 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
                 style.cancelButton,
                 styles.cancelButton,
               ]}
-              onPress={() => { 
-                setSearching(false); 
+              onPress={() => {
+                setSearching(false);
                 setWebViewVisible(false);
                 setIsVisible(false);
               }}
@@ -255,10 +265,10 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
               onPress={handleSubmit}
               disabled={!canSubmit()}
             >
-              <Text style={[styles.buttonText]}>{submitText}</Text>
+              <Text style={[styles.buttonText]}>Add Item</Text>
             </TouchableOpacity>
           </View>
-          
+
           {/* WebView for scraping - hidden but active */}
           {webViewVisible && (
             <WebView
@@ -282,7 +292,7 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
             />
           )}
         </View>
-        
+
         {/* Full-screen loading indicator */}
       </Modal>
     );

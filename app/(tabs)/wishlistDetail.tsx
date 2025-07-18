@@ -1,9 +1,11 @@
 import NewItemPrompt, { TitleInputModalRef } from "@/components/newItemPrompt";
-import { Wishlist, wishlistItem } from "@/constants/types/types";
+import { ProductData, Wishlist, wishlistItem } from "@/constants/types/types";
 import useParsedLocalParams from "@/hooks/useParsedLocalParams";
 import { db } from "@/lib/db";
 import { Entypo } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
+import { SQLiteRunResult } from "expo-sqlite";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView, Text, TouchableHighlight, View } from "react-native";
 
@@ -34,6 +36,49 @@ const WishlistDetail = () => {
       setItemsData(wishlistItemsData);
     }
   }, [id]);
+
+  // Function to add a product to the database
+  const addProductToList = async (
+    url: string,
+    productData: ProductData
+  ): Promise<void> => {
+    try {
+      console.log("called addProductToList", productData, wishlistData);
+      // Prepare the product data
+      const { title, price, description = null, imageUrl = null } = productData;
+      let insertResult: SQLiteRunResult | undefined;
+      // Insert the product into the database
+      await db.withTransactionAsync(async () => {
+        insertResult = await db.runAsync(
+          `INSERT INTO product_list (
+          wishlist_id, 
+          url, 
+          imageUrl, 
+          price, 
+          description, 
+          lastUpdated, 
+          title
+        ) VALUES (${wishlistData?.id}, '${url}', '${productData.imageUrl}', ${
+            productData.price
+          }, '${productData.description}', '${new Date().toDateString()}', '${
+            productData.title
+          }')`
+        );
+      });
+
+      if (insertResult) {
+        router.push({
+          pathname: "/productDetail",
+          params: {
+            productId: insertResult.lastInsertRowId,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to add product to list:", error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -67,9 +112,27 @@ const WishlistDetail = () => {
           >
             <Text className="text-lg font-medium text-gray-800">Add New +</Text>
           </TouchableHighlight>
+
+          <View className=" flex-1 p-4">
+            {itemsData && typeof itemsData === "object" ? (
+              <FlashList
+                data={itemsData}
+                renderItem={({ item }) => {
+                  console.log({ item });
+                  return (
+                    <View>
+                      <Text>{item.title}</Text>
+                    </View>
+                  );
+                }}
+                masonry
+                ItemSeparatorComponent={() => <View className="my-2" />}
+              />
+            ) : null}
+          </View>
         </View>
       </View>
-           <NewItemPrompt
+      <NewItemPrompt
         headerText="Add New Item"
         inputPlaceholder="Paste the url of the new Item"
         submitText="Add Item"
@@ -77,7 +140,10 @@ const WishlistDetail = () => {
           animationIn: "slideInUp",
           animationOut: "slideOutDown",
           backdropOpacity: 0.7,
-        }} ref={newItemRef} onSubmit={() => console.log("called")} />
+        }}
+        ref={newItemRef}
+        onSubmit={addProductToList}
+      />
     </SafeAreaView>
   );
 };
