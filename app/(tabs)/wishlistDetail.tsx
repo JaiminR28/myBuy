@@ -13,7 +13,6 @@ import { SafeAreaView, Text, TouchableHighlight, View } from "react-native";
 const WishlistDetail = () => {
   const router = useRouter();
   const newItemRef = useRef<TitleInputModalRef>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [wishlistData, setWishlistData] = useState<null | Wishlist>(null);
   const [itemsData, setItemsData] = useState<null | wishlistItem[]>([]);
 
@@ -47,7 +46,6 @@ const WishlistDetail = () => {
   ): Promise<void> => {
     try {
       // Prepare the product data
-      const { title, price, description = null, imageUrl = null } = productData;
       let insertResult: SQLiteRunResult | undefined;
       // Insert the product into the database
       await db.withTransactionAsync(async () => {

@@ -154,7 +154,7 @@ const ProductDetail = () => {
               className="flex-1 mr-2 py-3 bg-blue-500 rounded-lg items-center justify-center"
               onPress={handleOpenProductLink}
             >
-              <Text className="text-white font-medium">View Product</Text>
+              <Text className="text-white font-medium">Visit Product</Text>
             </TouchableOpacity>
 
             {!productDetail.isBought && (

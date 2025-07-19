@@ -126,7 +126,6 @@ GROUP BY
   };
 
   const renderItem = useCallback(({ item, index }: any) => {
-    console.log({item});
     return <WishlistListItem wislistInfo={item} index={index} router={router} />;
   }, [router]);
 
