@@ -1,25 +1,25 @@
-
-import { SplashScreen, Stack } from 'expo-router';
-import 'react-native-reanimated';
+import { SplashScreen, Stack } from "expo-router";
+import "react-native-reanimated";
 import "../global.css";
 
+import { useEffect, useState } from "react";
 
-import { useEffect, useState } from 'react';
-
+import { StatusBar } from "react-native";
 import FlashMessage from "react-native-flash-message";
-import { createTables } from '../utils/database';
-import loadFonts from '../utils/font-loader';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { createTables } from "../utils/database";
+import loadFonts from "../utils/font-loader";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
- const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
     async function prepare() {
       try {
         await loadFonts();
-         await createTables();
+        await createTables();
       } catch (e) {
         console.warn(e);
       } finally {
@@ -35,15 +35,13 @@ export default function RootLayout() {
   }
 
   return (
-
-    // <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-    <>
-    <FlashMessage position="top" />
+    <SafeAreaView className=" flex-1">
+      <FlashMessage position="top" />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
-      </>
-    // </ThemeProvider>
+      <StatusBar translucent/>
+    </SafeAreaView>
   );
 }

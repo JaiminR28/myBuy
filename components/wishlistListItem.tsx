@@ -31,6 +31,7 @@ const WishlistListItem = ({
     console.log({wishlistItems});
   return (
     <TouchableHighlight
+    underlayColor="#ffffff"
       className="p-3 rounded-lg border relative"
       onPress={redirectToDetailPage}
     >

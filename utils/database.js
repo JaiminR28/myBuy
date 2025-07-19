@@ -2,8 +2,6 @@ import { db } from "../lib/db";
 
 
 export const createTables = async () => {
-  console.log("called to create table");
-
   await db.execAsync(`
     PRAGMA foreign_keys = ON;
     PRAGMA journal_mode = WAL;
