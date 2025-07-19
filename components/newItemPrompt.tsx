@@ -1,10 +1,13 @@
 import { scrapeScript } from "@/constants/constants";
 import { ProductData } from "@/constants/types/types";
 import { Feather } from "@expo/vector-icons";
-import React, { forwardRef, useImperativeHandle, useState } from "react";
+import * as Clipboard from 'expo-clipboard';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  AppState,
+  AppStateStatus,
   Image,
   StyleProp,
   StyleSheet,
@@ -18,6 +21,7 @@ import {
 } from "react-native";
 import Modal, { ModalProps } from "react-native-modal";
 import WebView from "react-native-webview";
+
 
 export type TitleInputModalRef = {
   showModal: () => void;
@@ -77,6 +81,44 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
       },
       hideModal: () => setIsVisible(false),
     }));
+    
+      const appState = useRef<AppStateStatus>(AppState.currentState);
+
+  // Check clipboard when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, []);
+
+  const handleAppStateChange = async (nextAppState : AppStateStatus) => {
+    // Check if app is returning to foreground
+    if (appState.current.match(/inactive|background/) && nextAppState === 'active' && isVisible) {
+      await checkClipboard();
+    }
+    appState.current = nextAppState;
+  };
+
+  const checkClipboard = async () => {
+    try {
+      console.log("called");
+      const text = await Clipboard.getStringAsync();
+      if (isValidUrl(text)) {
+        console.log({text});
+        setUrl(text);
+      }
+    } catch (error) {
+      console.log('Clipboard read error:', error);
+    }
+  };
+
+  // Simple URL validation
+  const isValidUrl = (text : string) : boolean => {
+    try {
+      return Boolean(new URL(text));
+    } catch (e) {
+      return false;
+    }
+  };
 
     const handleSubmit = () => {
       if (!productData && !(manualTitle && manualPrice)) return;
@@ -185,7 +227,9 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
               disabled={searching}
             >
               {searching ? (
+                <View className=" items-center justify-center p-[2px]">
                 <ActivityIndicator size="small" color="#4361EE" />
+                </View>
               ) : (
                 <Feather name="search" size={24} />
               )}
@@ -316,6 +360,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   input: {
+    color : "#111",
     height: 40,
     borderColor: "#ccc",
     borderWidth: 1,
