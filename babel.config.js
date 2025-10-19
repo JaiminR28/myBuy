@@ -7,7 +7,7 @@ module.exports = function (api) {
     ],
     plugins: [
       // Other plugins can be added here
-      // "react-native-reanimated/plugin", // Ensure this is listed last
+      "react-native-reanimated/plugin", // Ensure this is listed last
     ],
   };
 };

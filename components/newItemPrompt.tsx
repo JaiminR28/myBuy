@@ -84,19 +84,6 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
     
       const appState = useRef<AppStateStatus>(AppState.currentState);
 
-  // Check clipboard when app comes to foreground
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => subscription.remove();
-  }, []);
-
-  const handleAppStateChange = async (nextAppState : AppStateStatus) => {
-    // Check if app is returning to foreground
-    if (appState.current.match(/inactive|background/) && nextAppState === 'active' && isVisible) {
-      await checkClipboard();
-    }
-    appState.current = nextAppState;
-  };
 
   const checkClipboard = async () => {
     try {
@@ -110,6 +97,26 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
       console.log('Clipboard read error:', error);
     }
   };
+
+
+  // Check clipboard when app comes to foreground
+  useEffect(() => {
+
+
+        const handleAppStateChange = async (nextAppState : AppStateStatus) => {
+    // Check if app is returning to foreground
+    console.log({nextAppState});
+    if (appState.current.match(/inactive|background/) && nextAppState === 'active' && isVisible) {
+      await checkClipboard();
+    }
+    appState.current = nextAppState;
+  };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [checkClipboard]);
+
+
 
   // Simple URL validation
   const isValidUrl = (text : string) : boolean => {
@@ -210,7 +217,7 @@ const NewItemPrompt = forwardRef<TitleInputModalRef, TitleInputModalProps>(
 
           <View className="flex-row items-center w-full mb-4">
             <TextInput
-              className="flex-1"
+              className="flex-1 text-gray-700"
               style={[styles.input, style.input]}
               placeholder={inputPlaceholder}
               value={url}
