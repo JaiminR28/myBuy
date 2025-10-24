@@ -10,7 +10,31 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jaiminR28.myBuy"
+      "bundleIdentifier": "com.jaiminR28.myBuy",
+      "associatedDomains": ["applinks:mybuy.app"],
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "mybuy",
+            "CFBundleURLSchemes": ["mybuy"]
+          },
+          {
+            "CFBundleURLName": "https",
+            "CFBundleURLSchemes": ["https"]
+          },
+          {
+            "CFBundleURLName": "http", 
+            "CFBundleURLSchemes": ["http"]
+          }
+        ],
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Text",
+            "CFBundleTypeRole": "Editor",
+            "LSItemContentTypes": ["public.text", "public.html"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +42,34 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.jaiminR28.myBuy"
+      "package": "com.jaiminR28.myBuy",
+      "intentFilters": [
+        {
+          "action": "android.intent.action.SEND",
+          "category": "android.intent.category.DEFAULT",
+          "data": [
+            {
+              "mimeType": "text/plain"
+            },
+            {
+              "mimeType": "text/html"
+            }
+          ]
+        },
+        {
+          "action": "android.intent.action.VIEW",
+          "category": "android.intent.category.DEFAULT",
+          "category": "android.intent.category.BROWSABLE",
+          "data": [
+            {
+              "scheme": "https"
+            },
+            {
+              "scheme": "http"
+            }
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

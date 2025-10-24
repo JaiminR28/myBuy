@@ -1,5 +1,5 @@
 import { wishlistItem, wishlistWithItems } from "@/constants/types/types";
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { Image, StyleSheet, Text, TouchableHighlight, View } from "react-native";
 
 type WishlistListItemProps = {
