@@ -1,16 +1,15 @@
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, useRouter } from "expo-router";
 import "react-native-reanimated";
 import "../global.css";
 
 import { useEffect, useState } from "react";
 
-import * as Linking from 'expo-linking';
-import { useRouter } from "expo-router";
 import { StatusBar } from "react-native";
 import FlashMessage from "react-native-flash-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ShareHandler from "../components/shareHandler";
 import { createTables } from "../utils/database";
+import DeepLinkHandler from "../utils/deepLinkHandler";
 import loadFonts from "../utils/font-loader";
 
 SplashScreen.preventAutoHideAsync();
@@ -36,50 +35,15 @@ export default function RootLayout() {
     prepare();
   }, []);
 
-  // Handle deep linking for shared URLs
+  // Initialize deep link handler
   useEffect(() => {
-    const handleDeepLink = (url: string) => {
-      console.log('Received deep link:', url);
-      
-      // Extract URL from the deep link
-      let extractedUrl = url;
-      
-      // Handle different deep link formats
-      if (url.startsWith('mybuy://')) {
-        // Custom scheme format: mybuy://share?url=https://...
-        const urlParam = url.split('url=')[1];
-        if (urlParam) {
-          extractedUrl = decodeURIComponent(urlParam);
-        }
-      } else if (url.startsWith('https://') || url.startsWith('http://')) {
-        // Direct URL sharing
-        extractedUrl = url;
-      }
-      
-      console.log('Extracted URL:', extractedUrl);
-      setSharedUrl(extractedUrl);
-      setIsShareModalVisible(true);
-    };
-
-    // Handle initial URL (app opened with a link)
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        handleDeepLink(url);
-      }
-    });
-
-    // Handle URL changes while app is running
-    const subscription = Linking.addEventListener('url', (event) => {
-      handleDeepLink(event.url);
-    });
-
-    return () => {
-      subscription?.remove();
-    };
+    const cleanup = DeepLinkHandler.getInstance().initialize();
+    return cleanup;
   }, []);
 
   const handleCreateNewWishlist = () => {
     setIsShareModalVisible(false);
+    setSharedUrl(null);
     // Navigate to home screen where user can create a new wishlist
     router.push('/(tabs)');
   };
@@ -88,6 +52,23 @@ export default function RootLayout() {
     setIsShareModalVisible(false);
     setSharedUrl(null);
   };
+
+  // Function to handle shared URLs - will be called from outside
+  const handleSharedUrl = (url: string) => {
+    console.log('Received shared URL:', url);
+    setSharedUrl(url);
+    setIsShareModalVisible(true);
+  };
+
+  // Expose the handler globally for share functionality
+  useEffect(() => {
+    // @ts-ignore
+    global.handleSharedUrl = handleSharedUrl;
+    return () => {
+      // @ts-ignore
+      delete global.handleSharedUrl;
+    };
+  }, []);
 
   if (!fontsLoaded) {
     return null;
