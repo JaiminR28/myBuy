@@ -67,12 +67,19 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
   };
 
   const handleSharedUrl = async (url: string) => {
+    console.log('🎯 ShareHandler received URL:', url);
+    console.log('📊 URL validation starting...');
+    
     // Reset state
     setProductData(null);
     setScrapeError(false);
     
     // Validate URL
-    if (!isProductUrl(url)) {
+    const isValidProductUrl = isProductUrl(url);
+    console.log('✅ URL validation result:', isValidProductUrl);
+    
+    if (!isValidProductUrl) {
+      console.log('❌ URL validation failed - showing unsupported URL alert');
       Alert.alert(
         "Unsupported URL",
         "This doesn't appear to be a product link from a supported e-commerce site. Please try sharing a product link from Amazon, Flipkart, Myntra, Ajio, Nykaa, Meesho, or Snapdeal.",
@@ -83,6 +90,8 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
 
     // Normalize URL
     const normalizedUrl = normalizeUrl(url);
+    console.log('🔧 Normalized URL:', normalizedUrl);
+    console.log('🔄 Starting product scraping process...');
     
     // Start scraping
     setIsScraping(true);
@@ -90,11 +99,23 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
   };
 
   const handleWebViewMessage = (event: any) => {
+    console.log('📨 WebView message received');
+    console.log('📄 Raw message data:', event.nativeEvent.data);
+    
     try {
       const result = JSON.parse(event.nativeEvent.data);
-      console.log("Scraped product data:", result);
+      console.log("🛍️ Scraped product data:", result);
+      console.log("📊 Scraping result summary:", {
+        hasTitle: !!result?.title,
+        hasPrice: !!result?.price,
+        hasDescription: !!result?.description,
+        hasImage: !!result?.image,
+        titleLength: result?.title?.length || 0,
+        priceLength: result?.price?.length || 0
+      });
 
       if (result?.title) {
+        console.log('✅ Product scraping successful!');
         // Successfully scraped product details
         const scrapedData: ProductData = {
           title: result.title,
@@ -103,13 +124,17 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
           imageUrl: result.image,
         };
         
+        console.log('📦 Processed product data:', scrapedData);
         setProductData(scrapedData);
         setIsScraping(false);
         
         // Show wishlist selection modal
+        console.log('📋 Available wishlists count:', wishlists.length);
         if (wishlists.length > 0) {
+          console.log('🎯 Showing wishlist selection modal');
           wishlistModalRef.current?.showModal(scrapedData, sharedUrl || "");
         } else {
+          console.log('⚠️ No wishlists available - showing create wishlist alert');
           Alert.alert(
             "No Wishlists",
             "You don't have any wishlists yet. Would you like to create one?",
@@ -120,6 +145,7 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
           );
         }
       } else {
+        console.log('❌ Product scraping failed - no title found');
         // Failed to scrape
         setScrapeError(true);
         setIsScraping(false);
@@ -131,7 +157,8 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
         );
       }
     } catch (error) {
-      console.error("Error parsing scraped data:", error);
+      console.error("💥 Error parsing scraped data:", error);
+      console.error("📄 Raw data that caused error:", event.nativeEvent.data);
       setScrapeError(true);
       setIsScraping(false);
       
@@ -144,6 +171,8 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
   };
 
   const handleWebViewError = () => {
+    console.log('🌐 WebView error occurred');
+    console.log('❌ Failed to load URL:', sharedUrl);
     setScrapeError(true);
     setIsScraping(false);
     
@@ -159,6 +188,11 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
     productData: ProductData,
     url: string
   ) => {
+    console.log('💾 Adding product to wishlists...');
+    console.log('📋 Selected wishlist IDs:', selectedWishlistIds);
+    console.log('🛍️ Product data:', productData);
+    console.log('🔗 Product URL:', url);
+    
     try {
       const result = await addProductToMultipleWishlists(
         selectedWishlistIds,
@@ -166,7 +200,10 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
         productData
       );
       
+      console.log('✅ Add to wishlist result:', result);
+      
       if (result.successCount > 0) {
+        console.log(`🎉 Successfully added to ${result.successCount} wishlist(s)`);
         showMessage({
           type: "success",
           message: "Product Added Successfully!",
@@ -174,10 +211,11 @@ const ShareHandler: React.FC<ShareHandlerProps> = ({
         });
         onClose();
       } else {
+        console.log('❌ No products were added');
         throw new Error("No products were added");
       }
     } catch (error) {
-      console.error("Failed to add product to wishlists:", error);
+      console.error("💥 Failed to add product to wishlists:", error);
       Alert.alert(
         "Error",
         "Failed to add product to wishlists. Please try again.",

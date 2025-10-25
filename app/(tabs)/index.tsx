@@ -4,6 +4,7 @@ import NewWishlistPrompt, {
 import WishlistListItem from "@/components/wishlistListItem";
 import { wishlistWithItems } from "@/constants/types/types";
 import { db } from "@/lib/db";
+import DeepLinkHandler from "@/utils/deepLinkHandler";
 import { Entypo } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
@@ -12,24 +13,33 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   SafeAreaView,
+  ScrollView,
   Text,
   TouchableHighlight,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { showMessage } from "react-native-flash-message";
 
-type scrapeDataType = {
-  price?: null | number,
-  description?: string | null,
-  title?: string | null, 
-}
 
 export default function HomeScreen() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [sharedUrls, setSharedUrls] = useState<string[]>([]);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   const [wishlists, setWishlists] = useState<wishlistWithItems[]>([]);
+
+  const refreshSharedUrls = useCallback(() => {
+    const urls = DeepLinkHandler.getSharedUrls();
+    setSharedUrls(urls);
+  }, []);
+
+  const clearSharedUrls = useCallback(() => {
+    DeepLinkHandler.clearSharedUrls();
+    setSharedUrls([]);
+  }, []);
 
   const handleGetAllWishlists = useCallback(async () => {
     try {
@@ -78,18 +88,19 @@ GROUP BY
   // INIT
   useEffect(() => {
     handleGetAllWishlists();
-  }, []);
+    refreshSharedUrls(); // Initial load of shared URLs
+  }, [handleGetAllWishlists, refreshSharedUrls]);
+
+  // Set up interval to check for new shared URLs
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshSharedUrls();
+    }, 2000); // Check every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [refreshSharedUrls]);
 
 
-  const handleMessage = (event: any) => {
-    const price = parseFloat(event.nativeEvent.data);
-    console.log({ price, event });
-    if (!isNaN(price)) {
-      // onPriceFetched(price);
-      // setPriceFound(true);
-    }
-    setIsLoading(false);
-  };
 
   const titleModalRef = useRef<TitleInputModalRef>(null);
 
@@ -144,6 +155,53 @@ GROUP BY
             <Entypo name="plus" size={30} color="#343a40" />
           </TouchableHighlight>
         </View>
+        
+        {/* Debug Section for Shared URLs */}
+        <View className="mt-4 p-3 bg-gray-100 rounded-lg">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-lg font-semibold text-gray-800">🔗 Shared URLs Debug</Text>
+            <View className="flex-row space-x-2">
+              <TouchableOpacity
+                onPress={() => setShowDebugInfo(!showDebugInfo)}
+                className="px-3 py-1 bg-blue-500 rounded"
+              >
+                <Text className="text-white text-sm">
+                  {showDebugInfo ? 'Hide' : 'Show'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={clearSharedUrls}
+                className="px-3 py-1 bg-red-500 rounded"
+              >
+                <Text className="text-white text-sm">Clear</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {showDebugInfo && (
+            <ScrollView className="max-h-40">
+              {sharedUrls.length === 0 ? (
+                <Text className="text-gray-500 italic">No shared URLs yet</Text>
+              ) : (
+                sharedUrls.map((url, index) => (
+                  <View key={index} className="mb-2 p-2 bg-white rounded border">
+                    <Text className="text-xs text-gray-600 mb-1">
+                      #{index + 1} - {new Date().toLocaleTimeString()}
+                    </Text>
+                    <Text className="text-sm text-gray-800" numberOfLines={2}>
+                      {url}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          )}
+          
+          <Text className="text-xs text-gray-500 mt-1">
+            Total URLs: {sharedUrls.length} | Auto-refresh every 2s
+          </Text>
+        </View>
+        
         {/* <Text>Paste the Url here</Text>
       <TextInput style={{borderWidth : 1, fontSize : 12, padding : 8}} onChangeText={setUrl} />
       <Button onPress={handleGetProductDetails} title="Submit" />
@@ -174,12 +232,18 @@ GROUP BY
       />
 
       <View className=" flex-1 p-4">
-        <FlashList
-          data={wishlists}
-          renderItem={renderItem}
-          masonry
-          ItemSeparatorComponent={() => <View className="my-2" />}
-        />
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-gray-500">Loading wishlists...</Text>
+          </View>
+        ) : (
+          <FlashList
+            data={wishlists}
+            renderItem={renderItem}
+            masonry
+            ItemSeparatorComponent={() => <View className="my-2" />}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

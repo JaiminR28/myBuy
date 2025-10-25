@@ -11,30 +11,30 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jaiminR28.myBuy",
-      "associatedDomains": ["applinks:mybuy.app"],
+      "associatedDomains": [
+        "applinks:mybuy.app"
+      ],
       "infoPlist": {
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "mybuy",
-            "CFBundleURLSchemes": ["mybuy"]
-          },
-          {
-            "CFBundleURLName": "https",
-            "CFBundleURLSchemes": ["https"]
-          },
-          {
-            "CFBundleURLName": "http", 
-            "CFBundleURLSchemes": ["http"]
+            "CFBundleURLSchemes": [
+              "mybuy"
+            ]
           }
         ],
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeName": "Text",
             "CFBundleTypeRole": "Editor",
-            "LSItemContentTypes": ["public.text", "public.html"]
+            "LSItemContentTypes": [
+              "public.text",
+              "public.html"
+            ]
           }
         ]
-      }
+      },
+      "appleTeamId": "5XM9C8FYLN"
     },
     "android": {
       "adaptiveIcon": {
@@ -53,19 +53,6 @@
             },
             {
               "mimeType": "text/html"
-            }
-          ]
-        },
-        {
-          "action": "android.intent.action.VIEW",
-          "category": "android.intent.category.DEFAULT",
-          "category": "android.intent.category.BROWSABLE",
-          "data": [
-            {
-              "scheme": "https"
-            },
-            {
-              "scheme": "http"
             }
           ]
         }

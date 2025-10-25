@@ -42,29 +42,39 @@ export default function RootLayout() {
   }, []);
 
   const handleCreateNewWishlist = () => {
+    console.log('📝 User wants to create new wishlist - closing share modal');
     setIsShareModalVisible(false);
     setSharedUrl(null);
     // Navigate to home screen where user can create a new wishlist
+    console.log('🏠 Navigating to home screen');
     router.push('/(tabs)');
   };
 
   const handleCloseShareModal = () => {
+    console.log('❌ Closing share modal');
     setIsShareModalVisible(false);
     setSharedUrl(null);
+    console.log('✅ Share modal closed and URL cleared');
   };
 
   // Function to handle shared URLs - will be called from outside
   const handleSharedUrl = (url: string) => {
-    console.log('Received shared URL:', url);
+    console.log('🎯 Main Layout received shared URL:', url);
+    console.log('📱 Setting shared URL state and showing modal');
+    console.log('⏰ Timestamp:', new Date().toISOString());
     setSharedUrl(url);
     setIsShareModalVisible(true);
+    console.log('✅ Share modal should now be visible');
   };
 
   // Expose the handler globally for share functionality
   useEffect(() => {
+    console.log('🌐 Setting up global handleSharedUrl function');
     // @ts-ignore
     global.handleSharedUrl = handleSharedUrl;
+    console.log('✅ Global handler registered successfully');
     return () => {
+      console.log('🧹 Cleaning up global handleSharedUrl function');
       // @ts-ignore
       delete global.handleSharedUrl;
     };
